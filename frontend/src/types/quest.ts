@@ -1,5 +1,3 @@
-import React from 'react';
-
 export type QuestStatus = 'IDLE' | 'GENERATED' | 'STARTED' | 'COMPLETED';
 
 export interface Objective {
@@ -12,7 +10,7 @@ export interface Quest {
   id: string;
   title: string;
   description: string;
-  duration: string;
+  duration_minutes: number;
   difficulty: string;
   objectives: Objective[];
   bonus?: string;
@@ -23,7 +21,7 @@ export const MOCK_QUEST: Quest = {
   id: 'quest_1',
   title: 'Urban Naturalist',
   description: 'Explore your surroundings with fresh eyes and find nature hiding in the city.',
-  duration: '20 MIN',
+  duration_minutes: 20,
   difficulty: 'EASY',
   objectives: [
     { id: 'obj_1', description: 'Find a plant you have never noticed before.', completed: false },

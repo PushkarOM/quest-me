@@ -1,0 +1,28 @@
+# Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# App specific
+.env
+*.db
+*.sqlite3
+
+# Node
+node_modules/
+dist/
+.vite/
