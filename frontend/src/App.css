@@ -1,0 +1,185 @@
+:root {
+  --bg-color: #fdfaf6;
+  --text-color: #2d3436;
+  --primary-color: #2ecc71;
+  --secondary-color: #e67e22;
+  --accent-color: #3498db;
+  --card-bg: #ffffff;
+  --border-color: #dcdde1;
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-main);
+  display: flex;
+  justify-content: center;
+}
+
+.app-wrapper {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Home Screen */
+.home-container {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  margin-top: 60px;
+}
+
+h1 {
+  font-size: 3rem;
+  margin: 0;
+  letter-spacing: -1px;
+  font-weight: 900;
+}
+
+.tagline {
+  font-size: 1.2rem;
+  opacity: 0.7;
+  margin: 0;
+}
+
+.stats-card {
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 24px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  box-shadow: 4px 4px 0px var(--border-color);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat .value {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.stat .label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  opacity: 0.6;
+  text-align: center;
+}
+
+/* Quest Screen */
+.quest-container {
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 4px 4px 0px var(--border-color);
+}
+
+.quest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.quest-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.quest-meta span {
+  background: #eee;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.quest-desc {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  margin-bottom: 30px;
+}
+
+.objectives-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.objective-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1rem;
+}
+
+.bonus-box {
+  background: #fff9e6;
+  border: 1px dashed var(--secondary-color);
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  font-size: 0.9rem;
+}
+
+/* Phone Down Screen */
+.phone-down-container {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+  gap: 20px;
+}
+
+.phone-down-container h1 {
+  font-size: 4rem;
+  color: var(--secondary-color);
+}
+
+.phone-down-container .subtext {
+  opacity: 0.6;
+  margin-bottom: 40px;
+}
+
+/* Buttons */
+.primary-btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #27ae60;
+  transition: transform 0.1s;
+}
+
+.primary-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #27ae60;
+}
+
+.secondary-btn {
+  background: transparent;
+  border: 2px solid var(--border-color);
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+}
