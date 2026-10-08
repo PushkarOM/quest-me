@@ -8,6 +8,7 @@ type Screen = 'home' | 'quest' | 'phoneDown' | 'evidence' | 'complete';
 
 const App: React.FC = () => {
   const [screen, setScreen] = useState<Screen>('home');
+  const [username, setUsername] = useState<string>(localStorage.getItem('quest_me_user') || '');
   const [activeQuest, setActiveQuest] = useState<Quest | null>(null);
   const [userStats, setUserStats] = useState<{total_xp: number, streak: number, completed_quests: number} | null>(null);
   const [loading, setLoading] = useState(false);
@@ -16,11 +17,12 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const init = async () => {
+      if (!username) return;
       setLoading(true);
       try {
         const [meRes, activeRes] = await Promise.all([
-          fetch(`${API_BASE}/api/me`),
-          fetch(`${API_BASE}/api/quests/active`)
+          fetch(`${API_BASE}/api/me?username=${encodeURIComponent(username)}`),
+          fetch(`${API_BASE}/api/quests/active?username=${encodeURIComponent(username)}`)
         ]);
 
         if (meRes.ok) setUserStats(await meRes.json());
@@ -57,13 +59,13 @@ const App: React.FC = () => {
       }
     };
     init();
-  }, []);
+  }, [username]);
 
   const generateQuest = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/api/quests/generate`, { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/quests/generate?username=${encodeURIComponent(username)}`, { method: 'POST' });
       if (!res.ok) throw new Error('Failed to generate quest');
       const data = await res.json();
       setActiveQuest(data);
@@ -79,7 +81,7 @@ const App: React.FC = () => {
     if (!activeQuest) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/quests/${activeQuest.id}/start`, { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/quests/${activeQuest.id}/start?username=${encodeURIComponent(username)}`, { method: 'POST' });
       if (!res.ok) throw new Error('Failed to start quest');
       setScreen('phoneDown');
     } catch (e: any) {
@@ -94,7 +96,7 @@ const App: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch(`${API_BASE}/api/quests/${activeQuest?.id}/objectives/${objectiveId}/evidence`, {
+      const res = await fetch(`${API_BASE}/api/quests/${activeQuest?.id}/objectives/${objectiveId}/evidence?username=${encodeURIComponent(username)}`, {
         method: 'POST',
         body: formData,
       });
@@ -130,7 +132,7 @@ const App: React.FC = () => {
     if (!activeQuest) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/quests/${activeQuest?.id}/complete`, { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/quests/${activeQuest?.id}/complete?username=${encodeURIComponent(username)}`, { method: 'POST' });
       if (!res.ok) throw new Error('Could not complete quest');
       const data = await res.json();
 
@@ -149,6 +151,37 @@ const App: React.FC = () => {
   };
 
   const renderHome = () => {
+    if (!username) {
+      return (
+        <div className="flex flex-col items-center justify-center h-[80vh] text-center gap-8 px-6 animate-in fade-in duration-700">
+          <div className="space-y-4 w-full max-w-sm">
+            <h2 className="text-4xl font-black text-quest-ink tracking-tighter font-display uppercase">Identify Yourself, Explorer</h2>
+            <p className="text-quest-ink opacity-60 font-medium font-serif italic">Your journal requires a name before we can begin.</p>
+          </div>
+          <div className="flex flex-col gap-4 w-full max-w-sm">
+            <input
+              type="text"
+              placeholder="Enter Explorer Name..."
+              className="bg-quest-parchment border-2 border-quest-ink p-4 text-xl font-black text-quest-ink placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-quest-sage font-display uppercase"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <button
+              className="bg-quest-sage text-white text-xl font-black py-4 px-10 rounded-none shadow-[4px_4px_0px_var(--color-quest-ink)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all uppercase font-display"
+              onClick={() => {
+                if (username.trim()) {
+                  localStorage.setItem('quest_me_user', username.trim());
+                }
+              }}
+              disabled={!username.trim()}
+            >
+              Enter the Field →
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     const fieldNotes = [
       "The world is more interesting when you're looking for something.",
       "Nature is the greatest artist; we are just the observers.",
@@ -220,8 +253,7 @@ const App: React.FC = () => {
         <div className="flex flex-col gap-1 mb-8 relative z-10">
           <h2 className="text-4xl sm:text-5xl font-black text-quest-ink tracking-tighter font-display leading-none">{activeQuest.title}</h2>
           <div className="flex gap-2 items-center">
-            <span className="font-mono text-[10px] font-bold px-2 py-0.5 bg-quest-ink text-white uppercase">{activeQuest.duration_minutes} MIN</span>
-            <span className="font-mono text-[10px] font-bold px-2 py-0.5 border border-quest-ink text-quest-ink uppercase">{activeQuest.difficulty}</span>
+            <span className="font-mono text-[10px] font-bold px-2 py-0.5 bg-quest-ink text-white uppercase">{activeQuest.duration_minutes} MIN · {activeQuest.difficulty.toUpperCase()}</span>
           </div>
         </div>
 

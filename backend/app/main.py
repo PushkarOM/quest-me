@@ -76,6 +76,8 @@ class QuestSchema(BaseModel):
     xp: int
 
 class UserSchema(BaseModel):
+    id: Optional[int] = None
+    username: str
     total_xp: int
     streak: int
     completed_quests: int
@@ -103,6 +105,12 @@ def generate_quest_via_provider(provider: BaseInferenceProvider, theme: str = "U
     - Location-flexible (work in most urban/suburban areas).
     - Focused on observing the physical world.
 
+    CRITICAL CONSTRAINTS:
+    - Title: Max 80 chars.
+    - Description: Max 400 chars.
+    - Bonus: Max 160 chars.
+    - Exactly 3 objectives.
+
     Return ONLY valid JSON matching this schema:
     {{
       "title": "Quest Title",
@@ -128,7 +136,7 @@ def generate_quest_via_provider(provider: BaseInferenceProvider, theme: str = "U
         return validated
     except Exception as e:
         logger.error(f"AI Generation failed: {e}")
-        raise HTTPException(status_code=502, detail="The quest generator is unavailable, try again")
+        raise HTTPException(status_code=502, detail=f"AI Generation failed: {str(e)}")
 
 # --- Endpoints ---
 

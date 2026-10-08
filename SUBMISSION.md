@@ -16,10 +16,10 @@ Unlike most AI apps that keep you glued to the screen, Quest Me uses AI to push 
 It's for the curious, the urban explorers, and anyone who needs a digital nudge to actually touch grass.
 
 ## Demo
-[Insert Deployed Link or Video Demo Here]
+**Live App**: [https://quest-me-frontend.onrender.com](https://quest-me-frontend.onrender.com)
 
 ## Code
-[Insert GitHub Repo Link Here]
+**GitHub Repository**: [https://github.com/PushkarOM/quest-me](https://github.com/PushkarOM/quest-me)
 
 ## How I Built It
 Quest Me is built as a hardened MVP focusing on a tight vertical slice of "Generate $\rightarrow$ Explore $\rightarrow$ Verify."
@@ -27,9 +27,9 @@ Quest Me is built as a hardened MVP focusing on a tight vertical slice of "Gener
 **The Stack:**
 - **Frontend**: React 19, Vite, and TypeScript. I implemented a custom **"Field Notebook" Design System** using Tailwind v4, utilizing a cream-and-sage palette and distressed textures to make the app feel like a physical expedition log rather than a SaaS product.
 - **Backend**: Python with FastAPI and SQLAlchemy 2.0, using SQLite for lightweight, local-first persistence.
-- **AI Engine**: Powered by **Ollama** running on a private, self-managed server.
-    - **Quest Generation**: Used structured JSON output to ensure the AI consistently generates valid quests with balanced difficulty and XP.
-    - **Evidence Verification**: Integrated open-weight vision models (like LLaVA) to perform real-time verification of photo evidence.
+- **AI Engine**: Powered by **Ollama** running on a private, self-managed Ubuntu server.
+    - **Quest Generation**: Used structured JSON output via `qwen2.5-coder:3b` to ensure the AI consistently generates valid quests with balanced difficulty and XP.
+    - **Evidence Verification**: Integrated the `llava` vision model to perform real-time verification of photo evidence.
 - **PWA**: Integrated a Service Worker and Web Manifest to allow the app to be installed on mobile devices for a truly standalone "field" experience.
 
 ## Why Does Open Innovation Matter?
