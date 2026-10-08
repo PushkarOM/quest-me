@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Quest } from './types/quest';
 import './sw-register';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 
 type Screen = 'home' | 'quest' | 'phoneDown' | 'evidence' | 'complete';
 
