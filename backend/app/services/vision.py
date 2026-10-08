@@ -19,6 +19,10 @@ class OllamaVisionProvider(VisionProvider):
 
     def verify_evidence(self, image_bytes: bytes, objective_description: str) -> Dict[str, Any]:
         import base64
+        import json
+        import logging
+        logger = logging.getLogger("questme")
+
         image_b64 = base64.b64encode(image_bytes).decode('utf-8')
 
         prompt = f"Does this image provide reasonable evidence for the following objective: '{objective_description}'? Return ONLY a JSON object with 'valid' (boolean), 'confidence' (float 0-1), and 'reason' (string)."
@@ -37,11 +41,17 @@ class OllamaVisionProvider(VisionProvider):
             )
             response.raise_for_status()
             result = response.json()
-            import json
-            return json.loads(result.get("response", '{"valid": false, "reason": "No response from AI"}'))
+
+            # Fail-closed: if the response is empty or malformed, it's invalid
+            raw_response = result.get("response")
+            if not raw_response:
+                return {"valid": False, "confidence": 0.0, "reason": "AI returned an empty response"}
+
+            return json.loads(raw_response)
         except Exception as e:
-            print(f"VisionProvider Error: {e}")
-            return {"valid": False, "confidence": 0.0, "reason": f"Error: {str(e)}"}
+            logger.error(f"VisionProvider Error: {e}")
+            # Fail-closed: Any internal error results in an invalid verdict
+            return {"valid": False, "confidence": 0.0, "reason": "Vision service currently unavailable"}
 
 def get_vision_provider() -> VisionProvider:
     # Currently only supporting Ollama for vision
