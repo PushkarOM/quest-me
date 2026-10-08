@@ -153,7 +153,7 @@ async def get_me(db: Session = Depends(get_db)):
         db.commit()
 
     completed_count = db.query(Quest).filter(Quest.user_id == user.id, Quest.status == "COMPLETED").count()
-    return UserSchema(total_xp=user.total_xp, streak=user.streak, completed_quests=completed_count)
+    return UserSchema(id=user.id, username=user.username, total_xp=user.total_xp, streak=user.streak, completed_quests=completed_count)
 
 @app.get("/api/quests/active")
 async def get_active_quest(db: Session = Depends(get_db)):

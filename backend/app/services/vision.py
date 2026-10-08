@@ -21,11 +21,19 @@ class OllamaVisionProvider(VisionProvider):
         import base64
         import json
         import logging
+        import re
         logger = logging.getLogger("questme")
 
         image_b64 = base64.b64encode(image_bytes).decode('utf-8')
 
-        prompt = f"Does this image provide reasonable evidence for the following objective: '{objective_description}'? Return ONLY a JSON object with 'valid' (boolean), 'confidence' (float 0-1), and 'reason' (string)."
+        prompt = f"""Analyze this image for the following objective: '{objective_description}'.
+Return ONLY a JSON object with these exact keys:
+{{
+  "valid": boolean,
+  "confidence": float (0.0 to 1.0),
+  "reason": "brief explanation"
+}}
+Do not include any conversational text, markdown code blocks, or explanations outside the JSON."""
 
         try:
             response = requests.post(
@@ -42,15 +50,26 @@ class OllamaVisionProvider(VisionProvider):
             response.raise_for_status()
             result = response.json()
 
-            # Fail-closed: if the response is empty or malformed, it's invalid
-            raw_response = result.get("response")
+            raw_response = result.get("response", "").strip()
             if not raw_response:
                 return {"valid": False, "confidence": 0.0, "reason": "AI returned an empty response"}
 
-            return json.loads(raw_response)
+            # Robust JSON extraction: find the first { and last }
+            try:
+                start_idx = raw_response.find('{')
+                end_idx = raw_response.rfind('}')
+                if start_idx != -1 and end_idx != -1:
+                    json_str = raw_response[start_idx:end_idx + 1]
+                    return json.loads(json_str)
+
+                # If no braces found, the model failed to provide JSON
+                return {"valid": False, "confidence": 0.0, "reason": f"AI failed to provide JSON response: {raw_response[:100]}..."}
+            except json.JSONDecodeError:
+                logger.error(f"Failed to decode AI response as JSON: {raw_response}")
+                return {"valid": False, "confidence": 0.0, "reason": "AI provided malformed JSON"}
+
         except Exception as e:
             logger.error(f"VisionProvider Error: {e}")
-            # Fail-closed: Any internal error results in an invalid verdict
             return {"valid": False, "confidence": 0.0, "reason": "Vision service currently unavailable"}
 
 def get_vision_provider() -> VisionProvider:
