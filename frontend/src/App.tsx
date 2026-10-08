@@ -134,10 +134,11 @@ const App: React.FC = () => {
       if (!res.ok) throw new Error('Could not complete quest');
       const data = await res.json();
 
-      setUserStats({
+      setUserStats(prev => ({
         total_xp: data.total_xp,
-        streak: data.streak
-      });
+        streak: data.streak,
+        completed_quests: prev?.completed_quests ? prev.completed_quests + 1 : 1
+      }));
 
       setScreen('complete');
     } catch (e: any) {
