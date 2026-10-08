@@ -9,6 +9,7 @@ type Screen = 'home' | 'quest' | 'phoneDown' | 'evidence' | 'complete';
 const App: React.FC = () => {
   const [screen, setScreen] = useState<Screen>('home');
   const [username, setUsername] = useState<string>(localStorage.getItem('quest_me_user') || '');
+  const [isUsernameConfirmed, setIsUsernameConfirmed] = useState<boolean>(!!localStorage.getItem('quest_me_user'));
   const [activeQuest, setActiveQuest] = useState<Quest | null>(null);
   const [userStats, setUserStats] = useState<{total_xp: number, streak: number, completed_quests: number} | null>(null);
   const [loading, setLoading] = useState(false);
@@ -151,7 +152,7 @@ const App: React.FC = () => {
   };
 
   const renderHome = () => {
-    if (!username) {
+    if (!isUsernameConfirmed) {
       return (
         <div className="flex flex-col items-center justify-center h-[80vh] text-center gap-8 px-6 animate-in fade-in duration-700">
           <div className="space-y-4 w-full max-w-sm">
@@ -170,7 +171,10 @@ const App: React.FC = () => {
               className="bg-quest-sage text-white text-xl font-black py-4 px-10 rounded-none shadow-[4px_4px_0px_var(--color-quest-ink)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all uppercase font-display"
               onClick={() => {
                 if (username.trim()) {
-                  localStorage.setItem('quest_me_user', username.trim());
+                  const trimmedName = username.trim();
+                  localStorage.setItem('quest_me_user', trimmedName);
+                  setUsername(trimmedName);
+                  setIsUsernameConfirmed(true);
                 }
               }}
               disabled={!username.trim()}
