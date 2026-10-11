@@ -353,7 +353,7 @@ const App: React.FC = () => {
               accept="image/*"
               capture="environment"
               className="hidden"
-+              disabled={!!verifyingObj}
+              disabled={!!verifyingObj}
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (file) {
