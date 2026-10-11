@@ -14,7 +14,10 @@ class VisionProvider(ABC):
 
 class OllamaVisionProvider(VisionProvider):
     def __init__(self):
-        self.base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").strip()
+        if url.endswith('/'):
+            url = url[:-1]
+        self.base_url = url
         self.model = os.getenv("VISION_MODEL", "llava")
 
     def verify_evidence(self, image_bytes: bytes, objective_description: str) -> Dict[str, Any]:
@@ -43,9 +46,8 @@ Do not include any conversational text, markdown code blocks, or explanations ou
                     "prompt": prompt,
                     "images": [image_b64],
                     "stream": False,
-                    "format": "json"
                 },
-                timeout=60
+                timeout=120
             )
             response.raise_for_status()
             result = response.json()
@@ -69,8 +71,8 @@ Do not include any conversational text, markdown code blocks, or explanations ou
                 return {"valid": False, "confidence": 0.0, "reason": "AI provided malformed JSON"}
 
         except Exception as e:
-            logger.error(f"VisionProvider Error: {e}")
-            return {"valid": False, "confidence": 0.0, "reason": "Vision service currently unavailable"}
+            logger.exception("VisionProvider Critical Error")
+            return {"valid": False, "confidence": 0.0, "reason": f"Vision service unavailable: {str(e)}"}
 
 def get_vision_provider() -> VisionProvider:
     # Currently only supporting Ollama for vision

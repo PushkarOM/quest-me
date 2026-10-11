@@ -18,7 +18,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const init = async () => {
-      if (!username) return;
+      if (!username || !isUsernameConfirmed) return;
       setLoading(true);
       try {
         const [meRes, activeRes] = await Promise.all([
@@ -60,7 +60,7 @@ const App: React.FC = () => {
       }
     };
     init();
-  }, [username]);
+  }, [username, isUsernameConfirmed]);
 
   const generateQuest = async () => {
     setLoading(true);
@@ -353,6 +353,7 @@ const App: React.FC = () => {
               accept="image/*"
               capture="environment"
               className="hidden"
++              disabled={!!verifyingObj}
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (file) {
@@ -364,7 +365,7 @@ const App: React.FC = () => {
             />
           </label>
         </div>
-        <button className="text-sm font-bold text-gray-400 hover:text-quest-earth transition-colors mx-auto underline underline-offset-4 font-mono" onClick={() => { setScreen('home'); }}>Abort Mission</button>
+        <button className="text-sm font-bold text-gray-400 hover:text-quest-earth transition-colors mx-auto underline underline-offset-4 font-mono" disabled={!!verifyingObj} onClick={() => { setScreen('home'); }}>Abort Mission</button>
       </div>
     );
   };

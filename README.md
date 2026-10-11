@@ -10,9 +10,11 @@ Quest Me is an AI-powered outdoor adventure PWA that turns the real world into a
 2. `python -m venv venv`
 3. `.\venv\Scripts\activate` (Windows) or `source venv/bin/activate` (Unix)
 4. `pip install -r requirements.txt`
-5. Create a `.env` file in `backend/` with:
+5. Copy `backend/.env.example` to `backend/.env` and edit as needed. The example includes:
    `OLLAMA_BASE_URL=http://localhost:11434`
-   `VISION_MODEL=llava`
+   `VISION_MODEL=llava:latest`
+   `QUEST_MODEL=qwen3-coder:480b-cloud`
+   `INFERENCE_MODE=ollama`
 6. `uvicorn app.main:app --host 0.0.0.0 --port 8000`
 
 ### 🎨 Frontend Setup

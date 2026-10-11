@@ -28,6 +28,9 @@ init_db()
 
 # Rate Limiter Setup
 limiter = Limiter(key_func=get_remote_address)
+# Disable rate limiting in test environments when RATE_LIMIT_ENABLED=0
+if os.getenv("RATE_LIMIT_ENABLED", "1") == "0":
+    limiter.enabled = False
 
 app = FastAPI(title="Quest Me API")
 app.state.limiter = limiter
@@ -136,7 +139,7 @@ def generate_quest_via_provider(provider: BaseInferenceProvider, theme: str = "U
         return validated
     except Exception as e:
         logger.error(f"AI Generation failed: {e}")
-        raise HTTPException(status_code=502, detail=f"AI Generation failed: {str(e)}")
+        raise HTTPException(status_code=502, detail="AI Generation failed")
 
 # --- Endpoints ---
 
@@ -201,6 +204,9 @@ async def get_quest(quest_id: str, db: Session = Depends(get_db)):
 @app.post("/api/quests/generate", response_model=QuestSchema)
 @limiter.limit("5/hour")
 async def generate_quest(request: Request, theme: Optional[str] = "Urban Naturalist", db: Session = Depends(get_db)):
+    # Validate theme length to prevent overly long inputs
+    if theme and len(theme) > 1000:
+        raise HTTPException(status_code=422, detail="Theme too long")
     provider = get_inference_provider()
     quest_data = generate_quest_via_provider(provider, theme)
 
@@ -281,32 +287,43 @@ async def submit_evidence(
         raise HTTPException(status_code=404, detail="Objective not found")
 
     # 2. Save File Temporarily
-    # Security: Validate file size before saving (Max 8MB)
+    # Security: Validate file type (must be an image) and size before saving (Max 8MB)
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=415, detail="Only image files are allowed")
     MAX_FILE_SIZE = 8 * 1024 * 1024
     content = await file.read()
     if len(content) > MAX_FILE_SIZE:
         raise HTTPException(status_code=413, detail="File too large. Maximum size is 8MB.")
-
-    file_path = os.path.join(UPLOAD_DIR, f"{objective_id}_{file.filename}")
+    # Sanitize filename to prevent path traversal
+    safe_filename = os.path.basename(file.filename)
+    file_path = os.path.join(UPLOAD_DIR, f"{objective_id}_{safe_filename}")
     with open(file_path, "wb") as buffer:
         buffer.write(content)
 
     # 3. Vision Verification
     vision_provider = get_vision_provider()
-    # Use the already read content from memory instead of re-reading from disk
     verification = vision_provider.verify_evidence(content, obj.description)
+
+    # Normalize verification result
+    raw_valid = verification.get("valid")
+    if isinstance(raw_valid, bool):
+        is_valid = raw_valid
+    elif isinstance(raw_valid, str):
+        is_valid = raw_valid.lower() == "true"
+    else:
+        is_valid = False
 
     # 4. Update DB
     evidence = Evidence(
         objective_id=objective_id,
         file_path=file_path,
-        verification_status="VERIFIED" if verification["valid"] else "REJECTED",
+        verification_status="VERIFIED" if is_valid else "REJECTED",
         confidence=verification.get("confidence"),
         reason=verification.get("reason")
     )
     db.add(evidence)
 
-    if verification["valid"]:
+    if is_valid:
         obj.status = "VERIFIED"
     else:
         obj.status = "REJECTED"
@@ -320,8 +337,8 @@ async def submit_evidence(
         logger.warning(f"Failed to remove temporary file {file_path}: {e}")
 
     return {
-        "valid": verification["valid"],
-        "reason": verification["reason"],
+        "valid": is_valid,
+        "reason": verification.get("reason"),
         "confidence": verification.get("confidence")
     }
 
@@ -339,6 +356,10 @@ async def complete_quest(quest_id: str, db: Session = Depends(get_db)):
 
     # Check if all required objectives are verified
     objectives = db.query(QuestObjective).filter(QuestObjective.quest_id == quest_id).all()
+    # Ensure there is at least one evidence-required objective
+    has_required = any(obj.evidence_required for obj in objectives)
+    if not has_required:
+        raise HTTPException(status_code=400, detail="Quest has no evidence-required objectives")
     all_done = all(obj.status == "VERIFIED" for obj in objectives if obj.evidence_required)
 
     if not all_done:
